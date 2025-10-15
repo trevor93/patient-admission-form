@@ -3,11 +3,45 @@ import { useState } from 'react';
 
 export default function PatientAdmissionForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       setUploadedFiles(prev => [...prev, ...newFiles]);
+
+      for (const file of newFiles) {
+        await sendFileToWebhook(file);
+      }
+    }
+  };
+
+  const sendFileToWebhook = async (file: File) => {
+    try {
+      setUploading(true);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', file.name);
+      formData.append('filesize', file.size.toString());
+      formData.append('filetype', file.type);
+      formData.append('uploadTimestamp', new Date().toISOString());
+
+      const response = await fetch('https://nimlaske.app.n8n.cloud/webhook-test/patient-document-upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      console.log(`File ${file.name} uploaded successfully`);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert(`Failed to upload ${file.name}. Please try again.`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -261,17 +295,20 @@ export default function PatientAdmissionForm() {
                   Document & Image Upload
                 </h2>
                 <div className="space-y-4">
-                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-slate-400 transition-colors">
-                    <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${uploading ? 'border-slate-500 bg-slate-50' : 'border-slate-300 hover:border-slate-400'}`}>
+                    <Upload className={`w-12 h-12 mx-auto mb-4 ${uploading ? 'text-slate-600 animate-pulse' : 'text-slate-400'}`} />
                     <label className="cursor-pointer">
-                      <span className="text-slate-600 font-medium">Click to upload</span>
-                      <span className="text-slate-500"> or drag and drop</span>
+                      <span className="text-slate-600 font-medium">
+                        {uploading ? 'Uploading...' : 'Click to upload'}
+                      </span>
+                      {!uploading && <span className="text-slate-500"> or drag and drop</span>}
                       <input
                         type="file"
                         multiple
                         accept="image/*,.pdf,.doc,.docx,.txt"
                         onChange={handleFileUpload}
                         className="hidden"
+                        disabled={uploading}
                       />
                     </label>
                     <p className="text-sm text-slate-500 mt-2">
