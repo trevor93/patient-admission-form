@@ -32,11 +32,11 @@ export default function PatientAdmissionForm() {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
+      if (response.status >= 200 && response.status < 400) {
+        console.log(`File ${file.name} uploaded successfully (Status: ${response.status})`);
+      } else {
+        throw new Error(`Upload failed with status: ${response.status}`);
       }
-
-      console.log(`File ${file.name} uploaded successfully`);
     } catch (error) {
       console.error('Error uploading file:', error);
       alert(`Failed to upload ${file.name}. Please try again.`);
