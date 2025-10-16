@@ -27,7 +27,7 @@ export default function PatientAdmissionForm() {
       formData.append('filetype', file.type);
       formData.append('uploadTimestamp', new Date().toISOString());
 
-      const response = await fetch('http://localhost:5678/webhook-test/patient-document-upload', {
+      const response = await fetch('https://nimlaske.app.n8n.cloud/webhook-test/patient-document-upload', {
         method: 'POST',
         body: formData,
       });
