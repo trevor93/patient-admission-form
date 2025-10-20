@@ -5,14 +5,10 @@ export default function PatientAdmissionForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       setUploadedFiles(prev => [...prev, ...newFiles]);
-
-      for (const file of newFiles) {
-        await sendFileToWebhook(file);
-      }
     }
   };
 
@@ -47,6 +43,28 @@ export default function PatientAdmissionForm() {
 
   const removeFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadAndExtract = async () => {
+    if (uploadedFiles.length === 0) {
+      alert('Please select at least one file to upload.');
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      for (const file of uploadedFiles) {
+        await sendFileToWebhook(file);
+      }
+
+      alert(`Successfully uploaded ${uploadedFiles.length} file(s) to n8n!`);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Upload failed. Please check the console for details.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -317,8 +335,8 @@ export default function PatientAdmissionForm() {
                   </div>
 
                   {uploadedFiles.length > 0 && (
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-medium text-slate-700">Uploaded Files:</h3>
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-slate-700">Selected Files:</h3>
                       <div className="space-y-2">
                         {uploadedFiles.map((file, index) => (
                           <div
@@ -340,12 +358,22 @@ export default function PatientAdmissionForm() {
                               type="button"
                               onClick={() => removeFile(index)}
                               className="ml-3 p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              disabled={uploading}
                             >
                               <X className="w-5 h-5" />
                             </button>
                           </div>
                         ))}
                       </div>
+                      <button
+                        type="button"
+                        onClick={handleUploadAndExtract}
+                        disabled={uploading}
+                        className="w-full px-6 py-3 bg-emerald-600 text-white font-medium rounded-md hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <Upload className="w-5 h-5" />
+                        {uploading ? 'Uploading & Extracting...' : 'UPLOAD & EXTRACT'}
+                      </button>
                     </div>
                   )}
                 </div>
