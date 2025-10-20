@@ -1,11 +1,33 @@
 import { FileText, Upload, X } from 'lucide-react';
 import { useState } from 'react';
 
+interface FormData {
+  admissionNumber?: string;
+  admissionDate?: string;
+  admissionTime?: string;
+  patientName?: string;
+  idNumber?: string;
+  dateOfBirth?: string;
+  age?: string;
+  sex?: string;
+  address?: string;
+  workContact?: string;
+  homeContact?: string;
+  doctorName?: string;
+  doctorPracticeNumber?: string;
+  medicalAid?: string;
+  memberName?: string;
+  memberId?: string;
+  authorizationNumber?: string;
+  dependentCode?: string;
+}
+
 export default function PatientAdmissionForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData>({});
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -15,26 +37,28 @@ export default function PatientAdmissionForm() {
   };
 
   const sendFileToWebhook = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('filename', file.name);
-    formData.append('filesize', file.size.toString());
-    formData.append('filetype', file.type);
-    formData.append('uploadTimestamp', new Date().toISOString());
+    const formDataPayload = new FormData();
+    formDataPayload.append('file', file);
+    formDataPayload.append('filename', file.name);
+    formDataPayload.append('filesize', file.size.toString());
+    formDataPayload.append('filetype', file.type);
+    formDataPayload.append('uploadTimestamp', new Date().toISOString());
 
-    console.log('Sending file to n8n:', file.name);
+    console.log('Sending file to webhook:', file.name);
 
     const response = await fetch('http://localhost:5678/webhook-test/upload-patient-form', {
       method: 'POST',
-      body: formData,
+      body: formDataPayload,
     });
 
     if (!response.ok) {
       throw new Error(`Upload failed with status: ${response.status}`);
     }
 
-    console.log(`File ${file.name} uploaded successfully (Status: ${response.status})`);
-    return response;
+    const jsonResponse = await response.json();
+    console.log('Webhook response:', jsonResponse);
+
+    return jsonResponse;
   };
 
   const removeFile = (index: number) => {
@@ -53,26 +77,31 @@ export default function PatientAdmissionForm() {
     setUploadError(null);
 
     try {
-      console.log(`Starting upload of ${uploadedFiles.length} file(s) to n8n...`);
+      console.log(`Starting upload of ${uploadedFiles.length} file(s) to webhook...`);
 
       for (const file of uploadedFiles) {
-        await sendFileToWebhook(file);
+        const webhookResponse = await sendFileToWebhook(file);
+
+        if (webhookResponse && webhookResponse.output) {
+          console.log('Extracted data from webhook:', webhookResponse.output);
+          setFormData(webhookResponse.output);
+        } else {
+          console.warn('No output field in webhook response');
+        }
       }
 
-      console.log('All files uploaded successfully!');
+      console.log('Files uploaded and data extracted successfully!');
       setUploadSuccess(true);
 
-      // Clear success message after 5 seconds
       setTimeout(() => {
         setUploadSuccess(false);
         setUploadedFiles([]);
       }, 5000);
     } catch (error) {
       console.error('Upload failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed. Please check your n8n webhook is running.';
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed. Please check your webhook is running.';
       setUploadError(errorMessage);
 
-      // Clear error message after 5 seconds
       setTimeout(() => setUploadError(null), 5000);
     } finally {
       setUploading(false);
@@ -109,6 +138,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.admissionNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 890004778 DAY-IP"
                     />
@@ -119,6 +150,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="date"
+                      value={formData.admissionDate || ''}
+                      onChange={(e) => setFormData({ ...formData, admissionDate: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                     />
                   </div>
@@ -128,6 +161,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="time"
+                      value={formData.admissionTime || ''}
+                      onChange={(e) => setFormData({ ...formData, admissionTime: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                     />
                   </div>
@@ -146,6 +181,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.patientName || ''}
+                      onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., MST KWILI. ASANDE"
                     />
@@ -156,6 +193,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.idNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 2003046809087"
                     />
@@ -166,6 +205,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="date"
+                      value={formData.dateOfBirth || ''}
+                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                     />
                   </div>
@@ -175,6 +216,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.age || ''}
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 5 Years"
                     />
@@ -183,7 +226,11 @@ export default function PatientAdmissionForm() {
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                       Sex
                     </label>
-                    <select className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors">
+                    <select
+                      value={formData.sex || ''}
+                      onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                    >
                       <option value="">Select</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -195,6 +242,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <textarea
                       rows={2}
+                      value={formData.address || ''}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors resize-none"
                       placeholder="e.g., PO Box 143 Ugie"
                     />
@@ -214,6 +263,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="tel"
+                      value={formData.workContact || ''}
+                      onChange={(e) => setFormData({ ...formData, workContact: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 0833182776"
                     />
@@ -224,6 +275,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="tel"
+                      value={formData.homeContact || ''}
+                      onChange={(e) => setFormData({ ...formData, homeContact: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 0833182776"
                     />
@@ -243,6 +296,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.doctorName || ''}
+                      onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., Dr Kathree, Dr M Kathree"
                     />
@@ -253,6 +308,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.doctorPracticeNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, doctorPracticeNumber: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 0351937"
                     />
@@ -272,6 +329,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.medicalAid || ''}
+                      onChange={(e) => setFormData({ ...formData, medicalAid: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., Gems Dental - Emerald Vat001081294"
                     />
@@ -282,6 +341,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.memberName || ''}
+                      onChange={(e) => setFormData({ ...formData, memberName: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., Mrs Muumvu, MN"
                     />
@@ -292,6 +353,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.memberId || ''}
+                      onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 6309160792080"
                     />
@@ -302,6 +365,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.authorizationNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, authorizationNumber: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 491511"
                     />
@@ -312,6 +377,8 @@ export default function PatientAdmissionForm() {
                     </label>
                     <input
                       type="text"
+                      value={formData.dependentCode || ''}
+                      onChange={(e) => setFormData({ ...formData, dependentCode: e.target.value })}
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 11"
                     />
@@ -398,10 +465,9 @@ export default function PatientAdmissionForm() {
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-emerald-800">Upload Successful!</h3>
+                        <h3 className="text-sm font-semibold text-emerald-800">Data Extracted Successfully!</h3>
                         <p className="text-sm text-emerald-700 mt-1">
-                          Your file(s) have been uploaded to n8n successfully. The workflow is now processing and extracting the data.
-                          The form fields will be automatically filled in shortly.
+                          Your file has been processed and the extracted data has been automatically populated in the form fields below.
                         </p>
                       </div>
                     </div>
