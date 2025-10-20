@@ -20,8 +20,6 @@ interface FormData {
   memberId?: string;
   authorizationNumber?: string;
   dependentCode?: string;
-  fileName?: string;
-  fileUrl?: string;
 }
 
 export default function PatientAdmissionForm() {
@@ -48,7 +46,9 @@ export default function PatientAdmissionForm() {
 
     console.log('Sending file to webhook:', file.name);
 
-    const response = await fetch('http://localhost:5678/webhook-test/upload-patient-form', {
+    const webhookUrl = 'http://localhost:5678/webhook-test/upload-patient-form';
+
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       body: formDataPayload,
     });
@@ -106,9 +106,7 @@ export default function PatientAdmissionForm() {
             memberName: extractedData['Member Name (MEM)'],
             memberId: extractedData['Member ID'],
             authorizationNumber: extractedData['Authorization Number (AUTH)'],
-            dependentCode: extractedData['Dependent Code'],
-            fileName: extractedData['File Name '],
-            fileUrl: extractedData['File URL']
+            dependentCode: extractedData['Dependent Code']
           };
 
           setFormData(mappedData);
@@ -136,342 +134,36 @@ export default function PatientAdmissionForm() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-slate-50 py-4 sm:py-8 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200">
           {/* Header */}
-          <div className="bg-slate-800 text-white px-8 py-6 rounded-t-lg">
+          <div className="bg-slate-800 text-white px-4 sm:px-8 py-4 sm:py-6 rounded-t-lg">
             <div className="flex items-center gap-3">
-              <FileText className="w-7 h-7" />
+              <FileText className="w-6 h-6 sm:w-7 sm:h-7" />
               <div>
-                <h1 className="text-2xl font-semibold">Patient Admission Form</h1>
-                <p className="text-slate-300 text-sm mt-1">Hospital Data Entry Template</p>
+                <h1 className="text-xl sm:text-2xl font-semibold">Patient Admission Form</h1>
+                <p className="text-slate-300 text-xs sm:text-sm mt-1">Hospital Data Entry Template</p>
               </div>
             </div>
           </div>
 
           {/* Form Content */}
-          <div className="p-8">
-            <form className="space-y-8">
-              {/* Admission Information */}
+          <div className="p-4 sm:p-8">
+            <form className="space-y-6 sm:space-y-8">
+              {/* Document Upload Section - Moved to Top */}
               <section>
-                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
-                  Admission Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Admission Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.admissionNumber || ''}
-                      onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 890004778 DAY-IP"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Admission Date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.admissionDate || ''}
-                      onChange={(e) => setFormData({ ...formData, admissionDate: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Time
-                    </label>
-                    <input
-                      type="time"
-                      value={formData.admissionTime || ''}
-                      onChange={(e) => setFormData({ ...formData, admissionTime: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Patient Information */}
-              <section>
-                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
-                  Patient Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Patient Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.patientName || ''}
-                      onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., MST KWILI. ASANDE"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      ID Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.idNumber || ''}
-                      onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 2003046809087"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Date of Birth (DOB)
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.dateOfBirth || ''}
-                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Age
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.age || ''}
-                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 5 Years"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Sex
-                    </label>
-                    <select
-                      value={formData.sex || ''}
-                      onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                    >
-                      <option value="">Select</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Address
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={formData.address || ''}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors resize-none"
-                      placeholder="e.g., PO Box 143 Ugie"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Contact Information */}
-              <section>
-                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
-                  Contact Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Work Contact (WK)
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.workContact || ''}
-                      onChange={(e) => setFormData({ ...formData, workContact: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 0833182776"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Home Contact (HM)
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.homeContact || ''}
-                      onChange={(e) => setFormData({ ...formData, homeContact: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 0833182776"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Medical Staff Information */}
-              <section>
-                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
-                  Medical Staff Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Doctor's Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.doctorName || ''}
-                      onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., Dr Kathree, Dr M Kathree"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Doctor Practice Number (DR Pr No)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.doctorPracticeNumber || ''}
-                      onChange={(e) => setFormData({ ...formData, doctorPracticeNumber: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 0351937"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Insurance Information */}
-              <section>
-                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
-                  Insurance & Medical Aid Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Medical Aid Scheme (MED)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.medicalAid || ''}
-                      onChange={(e) => setFormData({ ...formData, medicalAid: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., Gems Dental - Emerald Vat001081294"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Member Name (MEM)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.memberName || ''}
-                      onChange={(e) => setFormData({ ...formData, memberName: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., Mrs Muumvu, MN"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Member ID
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.memberId || ''}
-                      onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 6309160792080"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Authorization Number (AUTH)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.authorizationNumber || ''}
-                      onChange={(e) => setFormData({ ...formData, authorizationNumber: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 491511"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Dependent Code
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.dependentCode || ''}
-                      onChange={(e) => setFormData({ ...formData, dependentCode: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., 11"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* File Information */}
-              <section>
-                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
-                  File Information
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      File Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.fileName || ''}
-                      onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                      placeholder="e.g., MST KWILI. ASANDE - 890004778 DAY - IP"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      File URL
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={formData.fileUrl || ''}
-                        onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                        className="flex-1 px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
-                        placeholder="e.g., https://drive.google.com/file/d/..."
-                      />
-                      {formData.fileUrl && (
-                        <a
-                          href={formData.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-4 py-2.5 bg-slate-100 text-slate-700 border border-slate-300 rounded-md hover:bg-slate-200 transition-colors flex items-center gap-2"
-                        >
-                          <FileText className="w-4 h-4" />
-                          Open
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Document Upload Section */}
-              <section>
-                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-200">
                   Document & Image Upload
                 </h2>
                 <div className="space-y-4">
-                  <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${uploading ? 'border-slate-500 bg-slate-50' : 'border-slate-300 hover:border-slate-400'}`}>
-                    <Upload className={`w-12 h-12 mx-auto mb-4 ${uploading ? 'text-slate-600 animate-pulse' : 'text-slate-400'}`} />
+                  <div className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${uploading ? 'border-slate-500 bg-slate-50' : 'border-slate-300 hover:border-slate-400'}`}>
+                    <Upload className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 ${uploading ? 'text-slate-600 animate-pulse' : 'text-slate-400'}`} />
                     <label className="cursor-pointer">
-                      <span className="text-slate-600 font-medium">
+                      <span className="text-slate-600 font-medium text-sm sm:text-base">
                         {uploading ? 'Uploading...' : 'Click to upload'}
                       </span>
-                      {!uploading && <span className="text-slate-500"> or drag and drop</span>}
+                      {!uploading && <span className="text-slate-500 text-sm sm:text-base"> or drag and drop</span>}
                       <input
                         type="file"
                         multiple
@@ -481,7 +173,7 @@ export default function PatientAdmissionForm() {
                         disabled={uploading}
                       />
                     </label>
-                    <p className="text-sm text-slate-500 mt-2">
+                    <p className="text-xs sm:text-sm text-slate-500 mt-2">
                       Supports: Images (JPG, PNG, etc.), PDF, Word, and text documents
                     </p>
                   </div>
@@ -493,12 +185,12 @@ export default function PatientAdmissionForm() {
                         {uploadedFiles.map((file, index) => (
                           <div
                             key={index}
-                            className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-md px-4 py-3"
+                            className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-md px-3 sm:px-4 py-3"
                           >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <FileText className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 flex-shrink-0" />
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-slate-700 truncate">
+                                <p className="text-xs sm:text-sm font-medium text-slate-700 truncate">
                                   {file.name}
                                 </p>
                                 <p className="text-xs text-slate-500">
@@ -509,10 +201,10 @@ export default function PatientAdmissionForm() {
                             <button
                               type="button"
                               onClick={() => removeFile(index)}
-                              className="ml-3 p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                              className="ml-2 sm:ml-3 p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                               disabled={uploading}
                             >
-                              <X className="w-5 h-5" />
+                              <X className="w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
                           </div>
                         ))}
@@ -521,59 +213,317 @@ export default function PatientAdmissionForm() {
                         type="button"
                         onClick={handleUploadAndExtract}
                         disabled={uploading}
-                        className="w-full px-6 py-3 bg-emerald-600 text-white font-medium rounded-md hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white text-sm sm:text-base font-medium rounded-md hover:bg-emerald-700 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <Upload className="w-5 h-5" />
+                        <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
                         {uploading ? 'Uploading & Extracting...' : 'UPLOAD & EXTRACT'}
                       </button>
                     </div>
                   )}
 
-                  {/* Success Message */}
                   {uploadSuccess && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-start gap-3 animate-fadeIn">
-                      <div className="flex-shrink-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3 animate-fadeIn">
+                      <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-emerald-800">Data Extracted Successfully!</h3>
-                        <p className="text-sm text-emerald-700 mt-1">
+                        <h3 className="text-xs sm:text-sm font-semibold text-emerald-800">Data Extracted Successfully!</h3>
+                        <p className="text-xs sm:text-sm text-emerald-700 mt-1">
                           Your file has been processed and the extracted data has been automatically populated in the form fields below.
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Error Message */}
                   {uploadError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 animate-fadeIn">
-                      <div className="flex-shrink-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3 animate-fadeIn">
+                      <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-red-800">Upload Failed</h3>
-                        <p className="text-sm text-red-700 mt-1">{uploadError}</p>
+                        <h3 className="text-xs sm:text-sm font-semibold text-red-800">Upload Failed</h3>
+                        <p className="text-xs sm:text-sm text-red-700 mt-1">{uploadError}</p>
                       </div>
                     </div>
                   )}
                 </div>
               </section>
 
+              {/* Admission Information */}
+              <section>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-200">
+                  Admission Information
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Admission Number
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.admissionNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, admissionNumber: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 890004778 DAY-IP"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Admission Date
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.admissionDate || ''}
+                      onChange={(e) => setFormData({ ...formData, admissionDate: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.admissionTime || ''}
+                      onChange={(e) => setFormData({ ...formData, admissionTime: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Patient Information */}
+              <section>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-200">
+                  Patient Information
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Patient Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.patientName || ''}
+                      onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., MST KWILI. ASANDE"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      ID Number
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.idNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 2003046809087"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Date of Birth (DOB)
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.dateOfBirth || ''}
+                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Age
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.age || ''}
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 5 Years"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Sex
+                    </label>
+                    <select
+                      value={formData.sex || ''}
+                      onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                    >
+                      <option value="">Select</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Address
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.address || ''}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors resize-none"
+                      placeholder="e.g., PO Box 143 Ugie"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Contact Information */}
+              <section>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-200">
+                  Contact Information
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Work Contact (WK)
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.workContact || ''}
+                      onChange={(e) => setFormData({ ...formData, workContact: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 0833182776"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Home Contact (HM)
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.homeContact || ''}
+                      onChange={(e) => setFormData({ ...formData, homeContact: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 0833182776"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Medical Staff Information */}
+              <section>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-200">
+                  Medical Staff Information
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Doctor's Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.doctorName || ''}
+                      onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., Dr Kathree, Dr M Kathree"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Doctor Practice Number (DR Pr No)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.doctorPracticeNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, doctorPracticeNumber: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 0351937"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Insurance Information */}
+              <section>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-3 sm:mb-4 pb-2 border-b border-slate-200">
+                  Insurance & Medical Aid Information
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Medical Aid Scheme (MED)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.medicalAid || ''}
+                      onChange={(e) => setFormData({ ...formData, medicalAid: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., Gems Dental - Emerald Vat001081294"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Member Name (MEM)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.memberName || ''}
+                      onChange={(e) => setFormData({ ...formData, memberName: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., Mrs Muumvu, MN"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Member ID
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.memberId || ''}
+                      onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 6309160792080"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Authorization Number (AUTH)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.authorizationNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, authorizationNumber: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 491511"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+                      Dependent Code
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.dependentCode || ''}
+                      onChange={(e) => setFormData({ ...formData, dependentCode: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., 11"
+                    />
+                  </div>
+                </div>
+              </section>
+
               {/* Action Buttons */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-slate-800 text-white font-medium rounded-md hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 text-sm sm:text-base bg-slate-800 text-white font-medium rounded-md hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
                 >
                   Save Record
                 </button>
                 <button
                   type="button"
-                  className="px-6 py-2.5 bg-white text-slate-700 font-medium rounded-md border border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 text-sm sm:text-base bg-white text-slate-700 font-medium rounded-md border border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
                 >
                   Clear Form
                 </button>
