@@ -4,6 +4,8 @@ import { useState } from 'react';
 export default function PatientAdmissionForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -13,32 +15,26 @@ export default function PatientAdmissionForm() {
   };
 
   const sendFileToWebhook = async (file: File) => {
-    try {
-      setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('filename', file.name);
+    formData.append('filesize', file.size.toString());
+    formData.append('filetype', file.type);
+    formData.append('uploadTimestamp', new Date().toISOString());
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('filename', file.name);
-      formData.append('filesize', file.size.toString());
-      formData.append('filetype', file.type);
-      formData.append('uploadTimestamp', new Date().toISOString());
+    console.log('Sending file to n8n:', file.name);
 
-      const response = await fetch('http://localhost:5678/webhook-test/upload-patient-form', {
-        method: 'POST',
-        body: formData,
-      });
+    const response = await fetch('http://localhost:5678/webhook-test/upload-patient-form', {
+      method: 'POST',
+      body: formData,
+    });
 
-      if (response.status >= 200 && response.status < 400) {
-        console.log(`File ${file.name} uploaded successfully (Status: ${response.status})`);
-      } else {
-        throw new Error(`Upload failed with status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      alert(`Failed to upload ${file.name}. Please try again.`);
-    } finally {
-      setUploading(false);
+    if (!response.ok) {
+      throw new Error(`Upload failed with status: ${response.status}`);
     }
+
+    console.log(`File ${file.name} uploaded successfully (Status: ${response.status})`);
+    return response;
   };
 
   const removeFile = (index: number) => {
@@ -47,21 +43,37 @@ export default function PatientAdmissionForm() {
 
   const handleUploadAndExtract = async () => {
     if (uploadedFiles.length === 0) {
-      alert('Please select at least one file to upload.');
+      setUploadError('Please select at least one file to upload.');
+      setTimeout(() => setUploadError(null), 3000);
       return;
     }
 
+    setUploading(true);
+    setUploadSuccess(false);
+    setUploadError(null);
+
     try {
-      setUploading(true);
+      console.log(`Starting upload of ${uploadedFiles.length} file(s) to n8n...`);
 
       for (const file of uploadedFiles) {
         await sendFileToWebhook(file);
       }
 
-      alert(`Successfully uploaded ${uploadedFiles.length} file(s) to n8n!`);
+      console.log('All files uploaded successfully!');
+      setUploadSuccess(true);
+
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setUploadSuccess(false);
+        setUploadedFiles([]);
+      }, 5000);
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Upload failed. Please check the console for details.');
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed. Please check your n8n webhook is running.';
+      setUploadError(errorMessage);
+
+      // Clear error message after 5 seconds
+      setTimeout(() => setUploadError(null), 5000);
     } finally {
       setUploading(false);
     }
@@ -374,6 +386,39 @@ export default function PatientAdmissionForm() {
                         <Upload className="w-5 h-5" />
                         {uploading ? 'Uploading & Extracting...' : 'UPLOAD & EXTRACT'}
                       </button>
+                    </div>
+                  )}
+
+                  {/* Success Message */}
+                  {uploadSuccess && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-start gap-3 animate-fadeIn">
+                      <div className="flex-shrink-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-emerald-800">Upload Successful!</h3>
+                        <p className="text-sm text-emerald-700 mt-1">
+                          Your file(s) have been uploaded to n8n successfully. The workflow is now processing and extracting the data.
+                          The form fields will be automatically filled in shortly.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error Message */}
+                  {uploadError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 animate-fadeIn">
+                      <div className="flex-shrink-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-red-800">Upload Failed</h3>
+                        <p className="text-sm text-red-700 mt-1">{uploadError}</p>
+                      </div>
                     </div>
                   )}
                 </div>
