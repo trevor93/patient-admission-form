@@ -20,6 +20,8 @@ interface FormData {
   memberId?: string;
   authorizationNumber?: string;
   dependentCode?: string;
+  fileName?: string;
+  fileUrl?: string;
 }
 
 export default function PatientAdmissionForm() {
@@ -82,11 +84,36 @@ export default function PatientAdmissionForm() {
       for (const file of uploadedFiles) {
         const webhookResponse = await sendFileToWebhook(file);
 
-        if (webhookResponse && webhookResponse.output) {
-          console.log('Extracted data from webhook:', webhookResponse.output);
-          setFormData(webhookResponse.output);
+        if (webhookResponse && Array.isArray(webhookResponse) && webhookResponse.length > 0) {
+          const extractedData = webhookResponse[0];
+          console.log('Extracted data from webhook:', extractedData);
+
+          const mappedData: FormData = {
+            admissionNumber: extractedData['Admission Number'],
+            admissionDate: extractedData['Admission Date'],
+            admissionTime: extractedData['Time'],
+            patientName: extractedData['Patient Name'],
+            idNumber: extractedData['ID Number'],
+            dateOfBirth: extractedData['Date of Birth (DOB)'],
+            age: extractedData['Age']?.toString(),
+            sex: extractedData['Sex'],
+            address: extractedData['Address'],
+            workContact: extractedData['Work Contact (WK)'],
+            homeContact: extractedData['Home Contact (HM)'],
+            doctorName: extractedData["Doctor's Name"],
+            doctorPracticeNumber: extractedData['Doctor Practice Number (DR Pr No)'],
+            medicalAid: extractedData['Medical Aid Scheme (MED)'],
+            memberName: extractedData['Member Name (MEM)'],
+            memberId: extractedData['Member ID'],
+            authorizationNumber: extractedData['Authorization Number (AUTH)'],
+            dependentCode: extractedData['Dependent Code'],
+            fileName: extractedData['File Name '],
+            fileUrl: extractedData['File URL']
+          };
+
+          setFormData(mappedData);
         } else {
-          console.warn('No output field in webhook response');
+          console.warn('Unexpected webhook response format');
         }
       }
 
@@ -382,6 +409,52 @@ export default function PatientAdmissionForm() {
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
                       placeholder="e.g., 11"
                     />
+                  </div>
+                </div>
+              </section>
+
+              {/* File Information */}
+              <section>
+                <h2 className="text-lg font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-200">
+                  File Information
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      File Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.fileName || ''}
+                      onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                      placeholder="e.g., MST KWILI. ASANDE - 890004778 DAY - IP"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      File URL
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={formData.fileUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                        className="flex-1 px-4 py-2.5 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-colors"
+                        placeholder="e.g., https://drive.google.com/file/d/..."
+                      />
+                      {formData.fileUrl && (
+                        <a
+                          href={formData.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2.5 bg-slate-100 text-slate-700 border border-slate-300 rounded-md hover:bg-slate-200 transition-colors flex items-center gap-2"
+                        >
+                          <FileText className="w-4 h-4" />
+                          Open
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </section>
