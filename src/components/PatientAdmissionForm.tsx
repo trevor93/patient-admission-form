@@ -46,7 +46,7 @@ export default function PatientAdmissionForm() {
 
     console.log('Sending file to webhook:', file.name);
 
-    const webhookUrl = 'http://localhost:5678/webhook/upload-patient-form';
+    const webhookUrl = 'https://nimlaske.app.n8n.cloud/webhook-test/patient-document-upload';
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
@@ -84,8 +84,8 @@ export default function PatientAdmissionForm() {
       for (const file of uploadedFiles) {
         const webhookResponse = await sendFileToWebhook(file);
 
-        if (webhookResponse && Array.isArray(webhookResponse) && webhookResponse.length > 0) {
-          const extractedData = webhookResponse[0];
+        if (webhookResponse && webhookResponse.output) {
+          const extractedData = webhookResponse.output;
           console.log('Extracted data from webhook:', extractedData);
 
           const mappedData: FormData = {
@@ -111,7 +111,7 @@ export default function PatientAdmissionForm() {
 
           setFormData(mappedData);
         } else {
-          console.warn('Unexpected webhook response format');
+          console.warn('Unexpected webhook response format - missing output field');
         }
       }
 
