@@ -84,8 +84,8 @@ export default function PatientAdmissionForm() {
       for (const file of uploadedFiles) {
         const webhookResponse = await sendFileToWebhook(file);
 
-        if (webhookResponse && webhookResponse.output) {
-          const extractedData = webhookResponse.output;
+        if (webhookResponse && Array.isArray(webhookResponse) && webhookResponse.length > 0) {
+          const extractedData = webhookResponse[0];
           console.log('Extracted data from webhook:', extractedData);
 
           const mappedData: FormData = {
@@ -111,7 +111,7 @@ export default function PatientAdmissionForm() {
 
           setFormData(mappedData);
         } else {
-          console.warn('Unexpected webhook response format - missing output field');
+          console.warn('Unexpected webhook response format');
         }
       }
 
