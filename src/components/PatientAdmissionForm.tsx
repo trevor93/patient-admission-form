@@ -46,7 +46,7 @@ export default function PatientAdmissionForm() {
 
     console.log('Sending file to webhook:', file.name);
 
-    const webhookUrl = 'https://nimlaske.app.n8n.cloud/webhook-test/patient-document-upload';
+    const webhookUrl = 'http://localhost:5678/webhook/upload-patient-form';
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
