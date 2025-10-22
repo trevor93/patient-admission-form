@@ -46,7 +46,7 @@ export default function PatientAdmissionForm() {
 
     console.log('Sending file to webhook:', file.name);
 
-    const webhookUrl = 'http://localhost:5678/webhook/upload-patient-form';
+    const webhookUrl = 'https://primary-production-9ca0.up.railway.app/webhook/upload-patient-form';
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
