@@ -53,18 +53,19 @@ export default function PatientAdmissionForm() {
       body: formDataPayload,
     });
 
+    const responseText = await response.text(); // Read response body once as text
+    console.log('Raw webhook response text:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Webhook non-OK response text:', errorText);
-      throw new Error(`Upload failed with status: ${response.status}. Response: ${errorText}`);
+      console.error('Webhook non-OK response text:', responseText);
+      throw new Error(`Upload failed with status: ${response.status}. Response: ${responseText}`);
     }
 
     let jsonResponse;
     try {
-      jsonResponse = await response.json();
-      console.log('Raw webhook response:', jsonResponse);
+      jsonResponse = JSON.parse(responseText); // Attempt to parse the text as JSON
+      console.log('Parsed webhook JSON response:', jsonResponse);
     } catch (e) {
-      const responseText = await response.text();
       console.error('Failed to parse webhook response as JSON. Raw response text:', responseText, 'Error:', e);
       throw new Error('Webhook response was not valid JSON. Please check your n8n workflow\'s "Respond to Webhook" node.');
     }
