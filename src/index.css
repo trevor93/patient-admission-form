@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+button,
+input:where([type='button']),
+input:where([type='reset']),
+input:where([type='submit']) {
+  -webkit-appearance: button; /* Define vendor-prefixed property for compatibility */
+  appearance: button; /* Define standard property for compatibility */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+[type='search'] {
+  -webkit-appearance: textfield; /* Define vendor-prefixed property for compatibility */
+  appearance: textfield; /* Define standard property for compatibility */
+}
+
+
+img,
+video {
+  vertical-align: unset; /* Ensure vertical-align is not applied to block elements */
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
