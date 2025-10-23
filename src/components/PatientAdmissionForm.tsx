@@ -96,28 +96,52 @@ export default function PatientAdmissionForm() {
         console.log('Processed webhook response:', webhookResponse);
 
         if (webhookResponse) { // Check if webhookResponse is not null/undefined
-          const extractedData = webhookResponse; // Directly use the object
-          console.log('Extracted data from webhook:', extractedData);
+          // Check if the response is wrapped in a 'data' key (from n8n's Clean Extracted JSON node)
+          const actualExtractedData = webhookResponse.data || webhookResponse;
+          console.log('Extracted data from webhook (after unwrapping):', actualExtractedData);
+
+          // Helper function to format time to HH:mm
+          const formatTime = (timeString?: string) => {
+            if (!timeString) return '';
+            // Attempt to parse various time formats (e.g., "06:47", "09:30 AM")
+            const date = new Date(`2000-01-01T${timeString.replace(' AM', ':00').replace(' PM', ':00')}`);
+            if (isNaN(date.getTime())) {
+              // Fallback for formats like "09:30 AM"
+              const match = timeString.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+              if (match) {
+                let hours = parseInt(match[1], 10);
+                const minutes = match[2];
+                const ampm = match[3]?.toUpperCase();
+
+                if (ampm === 'PM' && hours < 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0; // Midnight
+
+                return `${String(hours).padStart(2, '0')}:${minutes}`;
+              }
+              return timeString; // Return original if cannot parse
+            }
+            return date.toTimeString().slice(0, 5); // Format to HH:mm
+          };
 
           const mappedData: FormData = {
-            admissionNumber: extractedData['Admission Number'],
-            admissionDate: extractedData['Admission Date'],
-            admissionTime: extractedData['Time'],
-            patientName: extractedData['Patient Name'],
-            idNumber: extractedData['ID Number'],
-            dateOfBirth: extractedData['Date of Birth (DOB)'],
-            age: extractedData['Age']?.toString(),
-            sex: extractedData['Sex'],
-            address: extractedData['Address'],
-            workContact: extractedData['Work Contact (WK)'],
-            homeContact: extractedData['Home Contact (HM)'],
-            doctorName: extractedData["Doctor's Name"],
-            doctorPracticeNumber: extractedData['Doctor Practice Number (DR Pr No)'],
-            medicalAid: extractedData['Medical Aid Scheme (MED)'],
-            memberName: extractedData['Member Name (MEM)'],
-            memberId: extractedData['Member ID'],
-            authorizationNumber: extractedData['Authorization Number (AUTH)'],
-            dependentCode: extractedData['Dependent Code']
+            admissionNumber: actualExtractedData['Admission Number'],
+            admissionDate: actualExtractedData['Admission Date'],
+            admissionTime: formatTime(actualExtractedData['Time']),
+            patientName: actualExtractedData['Patient Name'],
+            idNumber: actualExtractedData['ID Number'],
+            dateOfBirth: actualExtractedData['Date of Birth (DOB)'],
+            age: actualExtractedData['Age']?.toString(),
+            sex: actualExtractedData['Sex'],
+            address: actualExtractedData['Address'],
+            workContact: actualExtractedData['Work Contact (WK)'],
+            homeContact: actualExtractedData['Home Contact (HM)'],
+            doctorName: actualExtractedData["Doctor's Name"],
+            doctorPracticeNumber: actualExtractedData['Doctor Practice Number (DR Pr No)'],
+            medicalAid: actualExtractedData['Medical Aid Scheme (MED)'],
+            memberName: actualExtractedData['Member Name (MEM)'],
+            memberId: actualExtractedData['Member ID'],
+            authorizationNumber: actualExtractedData['Authorization Number (AUTH)'],
+            dependentCode: actualExtractedData['Dependent Code']
           };
           console.log('Mapped data for form:', mappedData);
 
