@@ -93,11 +93,11 @@ export default function PatientAdmissionForm() {
 
       for (const file of uploadedFiles) {
         const webhookResponse = await sendFileToWebhook(file);
-        console.log('Processed webhook response (before array check):', webhookResponse);
+        console.log('Processed webhook response:', webhookResponse);
 
-        if (webhookResponse && Array.isArray(webhookResponse) && webhookResponse.length > 0) {
-          const extractedData = webhookResponse[0];
-          console.log('Extracted data from webhook (first item):', extractedData);
+        if (webhookResponse) { // Check if webhookResponse is not null/undefined
+          const extractedData = webhookResponse; // Directly use the object
+          console.log('Extracted data from webhook:', extractedData);
 
           const mappedData: FormData = {
             admissionNumber: extractedData['Admission Number'],
@@ -123,7 +123,7 @@ export default function PatientAdmissionForm() {
 
           setFormData(mappedData);
         } else {
-          console.warn('Webhook response did not contain expected data or was malformed.');
+          console.warn('Webhook response was empty or malformed.');
         }
       }
 
