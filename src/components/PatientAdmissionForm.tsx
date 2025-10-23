@@ -58,7 +58,7 @@ export default function PatientAdmissionForm() {
     }
 
     const jsonResponse = await response.json();
-    console.log('Webhook response:', jsonResponse);
+    console.log('Raw webhook response:', jsonResponse);
 
     return jsonResponse;
   };
@@ -83,10 +83,11 @@ export default function PatientAdmissionForm() {
 
       for (const file of uploadedFiles) {
         const webhookResponse = await sendFileToWebhook(file);
+        console.log('Processed webhook response (before array check):', webhookResponse);
 
         if (webhookResponse && Array.isArray(webhookResponse) && webhookResponse.length > 0) {
           const extractedData = webhookResponse[0];
-          console.log('Extracted data from webhook:', extractedData);
+          console.log('Extracted data from webhook (first item):', extractedData);
 
           const mappedData: FormData = {
             admissionNumber: extractedData['Admission Number'],
@@ -108,10 +109,11 @@ export default function PatientAdmissionForm() {
             authorizationNumber: extractedData['Authorization Number (AUTH)'],
             dependentCode: extractedData['Dependent Code']
           };
+          console.log('Mapped data for form:', mappedData);
 
           setFormData(mappedData);
         } else {
-          console.warn('Webhook response did not contain an "output" field or was malformed.');
+          console.warn('Webhook response did not contain expected data or was malformed.');
         }
       }
 
