@@ -54,11 +54,20 @@ export default function PatientAdmissionForm() {
     });
 
     if (!response.ok) {
-      throw new Error(`Upload failed with status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Webhook non-OK response text:', errorText);
+      throw new Error(`Upload failed with status: ${response.status}. Response: ${errorText}`);
     }
 
-    const jsonResponse = await response.json();
-    console.log('Raw webhook response:', jsonResponse);
+    let jsonResponse;
+    try {
+      jsonResponse = await response.json();
+      console.log('Raw webhook response:', jsonResponse);
+    } catch (e) {
+      const responseText = await response.text();
+      console.error('Failed to parse webhook response as JSON. Raw response text:', responseText, 'Error:', e);
+      throw new Error('Webhook response was not valid JSON. Please check your n8n workflow\'s "Respond to Webhook" node.');
+    }
 
     return jsonResponse;
   };
