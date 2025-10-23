@@ -96,9 +96,10 @@ export default function PatientAdmissionForm() {
         console.log('Processed webhook response:', webhookResponse);
 
         if (webhookResponse) { // Check if webhookResponse is not null/undefined
-          // Check if the response is wrapped in a 'data' key (from n8n's Clean Extracted JSON node)
-          const actualExtractedData = webhookResponse.data || webhookResponse;
-          console.log('Extracted data from webhook (after unwrapping):', actualExtractedData);
+          // Ensure webhookResponse is an array and get the first item, or an empty object
+          const responseArray = Array.isArray(webhookResponse) ? webhookResponse : [webhookResponse];
+          const extractedData = responseArray.length > 0 ? responseArray[0] : {};
+          console.log('Extracted data from webhook (after array check and unwrapping):', extractedData);
 
           // Helper function to format time to HH:mm
           const formatTime = (timeString?: string) => {
@@ -124,24 +125,24 @@ export default function PatientAdmissionForm() {
           };
 
           const mappedData: FormData = {
-            admissionNumber: actualExtractedData['Admission Number'],
-            admissionDate: actualExtractedData['Admission Date'],
-            admissionTime: formatTime(actualExtractedData['Time']),
-            patientName: actualExtractedData['Patient Name'],
-            idNumber: actualExtractedData['ID Number'],
-            dateOfBirth: actualExtractedData['Date of Birth (DOB)'],
-            age: actualExtractedData['Age']?.toString(),
-            sex: actualExtractedData['Sex'],
-            address: actualExtractedData['Address'],
-            workContact: actualExtractedData['Work Contact (WK)'],
-            homeContact: actualExtractedData['Home Contact (HM)'],
-            doctorName: actualExtractedData["Doctor's Name"],
-            doctorPracticeNumber: actualExtractedData['Doctor Practice Number (DR Pr No)'],
-            medicalAid: actualExtractedData['Medical Aid Scheme (MED)'],
-            memberName: actualExtractedData['Member Name (MEM)'],
-            memberId: actualExtractedData['Member ID'],
-            authorizationNumber: actualExtractedData['Authorization Number (AUTH)'],
-            dependentCode: actualExtractedData['Dependent Code']
+            admissionNumber: extractedData['Admission Number'],
+            admissionDate: extractedData['Admission Date'],
+            admissionTime: formatTime(extractedData['Time']),
+            patientName: extractedData['Patient Name'],
+            idNumber: extractedData['ID Number'],
+            dateOfBirth: extractedData['Date of Birth (DOB)'],
+            age: extractedData['Age']?.toString(),
+            sex: extractedData['Sex'],
+            address: extractedData['Address'],
+            workContact: extractedData['Work Contact (WK)'],
+            homeContact: extractedData['Home Contact (HM)'],
+            doctorName: extractedData["Doctor's Name"],
+            doctorPracticeNumber: extractedData['Doctor Practice Number (DR Pr No)'],
+            medicalAid: extractedData['Medical Aid Scheme (MED)'],
+            memberName: extractedData['Member Name (MEM)'],
+            memberId: extractedData['Member ID'],
+            authorizationNumber: extractedData['Authorization Number (AUTH)'],
+            dependentCode: extractedData['Dependent Code']
           };
           console.log('Mapped data for form:', mappedData);
 
