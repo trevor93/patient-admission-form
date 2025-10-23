@@ -32,7 +32,7 @@ export default function PatientAdmissionForm() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      setUploadedFiles(prev => [...prev, ...newFiles]);
+      setUploadedFiles((prev: File[]) => [...prev, ...newFiles]);
     }
   };
 
@@ -64,7 +64,7 @@ export default function PatientAdmissionForm() {
   };
 
   const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev: File[]) => prev.filter((_file: File, i: number) => i !== index));
   };
 
   const handleUploadAndExtract = async () => {
