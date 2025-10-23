@@ -53,24 +53,13 @@ export default function PatientAdmissionForm() {
       body: formDataPayload,
     });
 
-    const responseText = await response.text(); // Read response body once as text
-    console.log('Raw webhook response text:', responseText);
-
     if (!response.ok) {
+      const responseText = await response.text();
       console.error('Webhook non-OK response text:', responseText);
       throw new Error(`Upload failed with status: ${response.status}. Response: ${responseText}`);
     }
 
-    let jsonResponse;
-    try {
-      jsonResponse = JSON.parse(responseText); // Attempt to parse the text as JSON
-      console.log('Parsed webhook JSON response:', jsonResponse);
-    } catch (e) {
-      console.error('Failed to parse webhook response as JSON. Raw response text:', responseText, 'Error:', e);
-      throw new Error('Webhook response was not valid JSON. Please check your n8n workflow\'s "Respond to Webhook" node.');
-    }
-
-    return jsonResponse;
+    return response.json();
   };
 
   const removeFile = (index: number) => {
@@ -95,11 +84,9 @@ export default function PatientAdmissionForm() {
         const webhookResponse = await sendFileToWebhook(file);
         console.log('Processed webhook response:', webhookResponse);
 
-        if (webhookResponse) { // Check if webhookResponse is not null/undefined
-          // Ensure webhookResponse is an array and get the first item, or an empty object
-          const responseArray = Array.isArray(webhookResponse) ? webhookResponse : [webhookResponse];
-          const extractedData = responseArray.length > 0 ? responseArray[0] : {};
-          console.log('Extracted data from webhook (after array check and unwrapping):', extractedData);
+        if (webhookResponse) {
+          const extractedData = webhookResponse;
+          console.log('Extracted data from webhook:', extractedData);
 
           // Helper function to format time to HH:mm
           const formatTime = (timeString?: string) => {
