@@ -102,6 +102,7 @@ export default function PatientAdmissionForm() {
     setUploading(true);
     setUploadSuccess(false);
     setUploadError(null);
+    setFormData({});
 
     try {
       console.log(`Starting upload of ${uploadedFiles.length} file(s) to webhook...`);
@@ -573,6 +574,7 @@ export default function PatientAdmissionForm() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setFormData({})}
                   className="w-full sm:w-auto px-4 sm:px-6 py-2.5 text-sm sm:text-base bg-white text-slate-700 font-medium rounded-md border border-slate-300 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
                 >
                   Clear Form
