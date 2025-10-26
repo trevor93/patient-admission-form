@@ -48,18 +48,44 @@ export default function PatientAdmissionForm() {
 
     const webhookUrl = 'https://naimtech-n8n.up.railway.app/webhook/upload-patient-form';
 
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      body: formDataPayload,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5-minute timeout
 
-    if (!response.ok) {
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        body: formDataPayload,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error('Webhook non-OK response text:', responseText);
+        throw new Error(`Upload failed with status: ${response.status}. Response: ${responseText}`);
+      }
+
       const responseText = await response.text();
-      console.error('Webhook non-OK response text:', responseText);
-      throw new Error(`Upload failed with status: ${response.status}. Response: ${responseText}`);
-    }
+      if (!responseText) {
+        console.warn('Webhook returned an empty response.');
+        throw new Error('Extraction failed: The server returned an empty response. This may happen with complex PDFs.');
+      }
 
-    return response.json();
+      try {
+        return JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse webhook response as JSON:', responseText);
+        throw new Error('Received an invalid response from the server.');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Upload timed out after 5 minutes. The PDF might be too large or complex.');
+        }
+      }
+      throw error;
+    }
   };
 
   const removeFile = (index: number) => {
