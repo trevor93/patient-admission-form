@@ -46,7 +46,7 @@ export default function PatientAdmissionForm() {
 
     console.log('Sending file to webhook:', file.name);
 
-    const webhookUrl = 'https://naimtech-n8n.up.railway.app/webhook-test/upload-patient-form';
+    const webhookUrl = 'https://naimtech-n8n.up.railway.app/webhook/upload-patient-form';
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 300000); // 5-minute timeout
